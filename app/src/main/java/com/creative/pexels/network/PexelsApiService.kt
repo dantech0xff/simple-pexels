@@ -12,7 +12,7 @@ import retrofit2.http.Query
 
 private const val SEARCH_PHOTOS = "v1/search"
 
-interface PexelsApi {
+interface PexelsApiService {
 
     @GET(SEARCH_PHOTOS)
     suspend fun searchPhotos(
