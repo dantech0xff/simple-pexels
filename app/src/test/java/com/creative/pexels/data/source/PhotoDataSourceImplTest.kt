@@ -206,4 +206,56 @@ class PhotoDataSourceImplTest {
         // Verify that we didn't make a second API call
         coVerify(exactly = 0) { mockApiService.searchPhotos(query, 2, 20) }
     }
+
+    @Test
+    fun `loadPhotos should reset state when query changes`() = runTest {
+        // Arrange - First query
+        val query1 = "nature"
+        val mockPhotos1 = createMockPexelsPhotos(3)
+        val photosResponse1 = PexelsPhotosResponse(
+            page = 1,
+            perPage = 20,
+            photos = mockPhotos1,
+            totalResults = 100,
+            nextPage = "next-page-url"
+        )
+
+        coEvery { mockApiService.searchPhotos(query1, 1, 20) } returns photosResponse1
+
+        // Load photos with first query
+        val result1 = photoDataSource.loadPhotos(query1)
+
+        // Verify first load was successful
+        assertTrue(result1.isSuccess)
+        assertEquals(3, result1.getOrNull())
+
+        // Arrange - Second query (different)
+        val query2 = "city"
+        val mockPhotos2 = createMockPexelsPhotos(2, startId = 100)
+        val photosResponse2 = PexelsPhotosResponse(
+            page = 1, // Should start from page 1 again
+            perPage = 20,
+            photos = mockPhotos2,
+            totalResults = 50,
+            nextPage = "next-page-url"
+        )
+
+        coEvery { mockApiService.searchPhotos(query2, 1, 20) } returns photosResponse2
+
+        // Act - Load photos with second query
+        val result2 = photoDataSource.loadPhotos(query2)
+
+        // Assert
+        assertTrue(result2.isSuccess)
+        assertEquals(2, result2.getOrNull())
+
+        // Check that flow contains ONLY the new photos (old ones were cleared)
+        val photos = photoDataSource.photoFlow.first()
+        assertEquals(2, photos.size)
+        assertEquals(mockPhotos2.map { it.toPhoto() }, photos)
+
+        // Verify that the API was called with page 1 for the new query
+        coVerify(exactly = 1) { mockApiService.searchPhotos(query1, 1, 20) }
+        coVerify(exactly = 1) { mockApiService.searchPhotos(query2, 1, 20) }
+    }
 }
