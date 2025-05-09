@@ -29,16 +29,22 @@ class PhotoDataSourceImpl @Inject constructor(
     }
 
     private var currentPage: Int = 1
+    private var totalPhotoCount: Int = 1
+
     private val mutex: Mutex = Mutex()
     private val mutablePhotoFlow: MutableStateFlow<List<Photo>> = MutableStateFlow(emptyList())
-
     override val photoFlow: Flow<List<Photo>>
         get() = mutablePhotoFlow.asStateFlow()
 
     override suspend fun loadPhotos(query: String) = withContext(appDispatchers.io) {
         mutex.withLock {
+            if (totalPhotoCount <= mutablePhotoFlow.value.size) {
+                return@withLock Result.success(0)
+            }
             runCatching {
-                pexelsApiService.searchPhotos(query, currentPage, perPage = DEFAULT_PAGE_SIZE).photos.map {
+                pexelsApiService.searchPhotos(query, currentPage, perPage = DEFAULT_PAGE_SIZE).apply {
+                    totalPhotoCount = totalResults
+                }.photos.map {
                     it.toPhoto()
                 }
             }.fold({
