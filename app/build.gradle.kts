@@ -25,6 +25,7 @@ android {
         versionCode = 1
         versionName = "1.0"
         buildConfigField("String", "PEXELS_API_KEY", "\"${localProperties.getProperty("pexels.key", "")}\"")
+        buildConfigField("String", "PEXELS_BASE_URL", "\"${localProperties.getProperty("pexels.base.url", "")}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -67,8 +68,8 @@ dependencies {
     // Retrofit
     implementation(libs.retrofit)
     implementation(libs.converter.moshi)
-//    implementation(libs.okhttp3.okhttp)
     implementation(libs.okhttp3.logging.interceptor)
+    implementation(libs.moshi.kotlin)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
