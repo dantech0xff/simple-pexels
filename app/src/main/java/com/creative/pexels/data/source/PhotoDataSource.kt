@@ -16,4 +16,6 @@ interface PhotoDataSource {
     suspend fun loadPhotos(
         query: String
     ): Result<Int>
+
+    suspend fun clearPhotos()
 }

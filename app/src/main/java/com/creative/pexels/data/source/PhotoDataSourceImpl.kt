@@ -75,4 +75,13 @@ class PhotoDataSourceImpl @Inject constructor(
             })
         }
     }
+
+    override suspend fun clearPhotos() = withContext(appDispatchers.io) {
+        mutex.withLock {
+            currentQuery = ""
+            currentPage = 1
+            totalPhotoCount = Int.MAX_VALUE
+            mutablePhotoFlow.value = emptyList()
+        }
+    }
 }

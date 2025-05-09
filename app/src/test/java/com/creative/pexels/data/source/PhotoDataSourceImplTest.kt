@@ -258,4 +258,57 @@ class PhotoDataSourceImplTest {
         coVerify(exactly = 1) { mockApiService.searchPhotos(query1, 1, 20) }
         coVerify(exactly = 1) { mockApiService.searchPhotos(query2, 1, 20) }
     }
+
+    @Test
+    fun `clearPhotos should reset all state to default values`() = runTest {
+        // Arrange - First load some photos
+        val query = "nature"
+        val mockPhotos = createMockPexelsPhotos(3)
+        val photosResponse = PexelsPhotosResponse(
+            page = 1,
+            perPage = 20,
+            photos = mockPhotos,
+            totalResults = 100,
+            nextPage = "next-page-url"
+        )
+
+        coEvery { mockApiService.searchPhotos(query, 1, 20) } returns photosResponse
+
+        // Load photos
+        val loadResult = photoDataSource.loadPhotos(query)
+        assertTrue(loadResult.isSuccess)
+
+        // Verify photos were loaded
+        val photosBeforeClear = photoDataSource.photoFlow.first()
+        assertEquals(3, photosBeforeClear.size)
+
+        // Act - Clear photos
+        photoDataSource.clearPhotos()
+
+        // Assert
+        // Verify photo list is empty
+        val photosAfterClear = photoDataSource.photoFlow.first()
+        assertTrue(photosAfterClear.isEmpty())
+
+        // Load photos with same query - should start from page 1 again
+        val newPhotosResponse = PexelsPhotosResponse(
+            page = 1,
+            perPage = 20,
+            photos = mockPhotos,
+            totalResults = 100,
+            nextPage = "next-page-url"
+        )
+
+        coEvery { mockApiService.searchPhotos(query, 1, 20) } returns newPhotosResponse
+
+        // Load photos again
+        val reloadResult = photoDataSource.loadPhotos(query)
+
+        // Verify the photos were loaded from page 1
+        assertTrue(reloadResult.isSuccess)
+        assertEquals(3, reloadResult.getOrNull())
+
+        // Verify API was called again with page 1
+        coVerify(exactly = 2) { mockApiService.searchPhotos(query, 1, 20) }
+    }
 }
