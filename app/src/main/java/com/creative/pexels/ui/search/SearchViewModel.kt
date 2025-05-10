@@ -50,6 +50,9 @@ class SearchViewModel @Inject constructor(
 
     override fun querySearch(query: String) = viewModelScope.launch {
         setSearchKeyword(query)
+        if (query.isEmpty()) {
+            return@launch
+        }
         mutableIsLoading.value = true
         queryPhotoUseCase.loadPhotos(query)
         mutableIsLoading.value = false

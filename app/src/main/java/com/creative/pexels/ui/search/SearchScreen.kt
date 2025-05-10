@@ -41,7 +41,7 @@ fun SearchScreen(vm: ISearchViewModel, appNavHost: NavHostController) {
 
             Column(modifier = Modifier.fillMaxSize()) {
                 SearchBar(
-                    modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                    modifier = Modifier.fillMaxWidth(),
                     uiState.searchKeyword,
                     updateQuery = {
                         vm.setSearchKeyword(it)
