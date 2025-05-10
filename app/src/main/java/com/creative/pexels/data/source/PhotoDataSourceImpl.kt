@@ -35,7 +35,7 @@ class PhotoDataSourceImpl @Inject constructor(
     private val appDispatchers: AppDispatchers
 ) : PhotoDataSource {
     companion object {
-        private const val DEFAULT_PAGE_SIZE: Int = 50
+        private const val DEFAULT_PAGE_SIZE: Int = 10
     }
 
     private var currentPage: Int = 1
@@ -73,6 +73,14 @@ class PhotoDataSourceImpl @Inject constructor(
             }, {
                 Result.failure(it)
             })
+        }
+    }
+
+    override suspend fun loadMoreCurrentQuery(): Result<Int> = withContext(appDispatchers.io) {
+        if (currentQuery.isEmpty()) {
+            Result.failure(IllegalStateException("Current query is empty"))
+        } else {
+            loadPhotos(currentQuery)
         }
     }
 

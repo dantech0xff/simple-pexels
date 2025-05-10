@@ -13,4 +13,5 @@ interface ILauncherViewModel {
     val searchPhotos: Flow<List<Photo>>
     val trendSearch: Flow<List<String>>
     fun querySearch(query: String) = Unit
+    suspend fun loadMoreCurrentQuery() = Unit
 }

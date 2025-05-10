@@ -29,9 +29,12 @@ class LauncherViewModel @Inject constructor(
         get() = mutableTrendingSearch
 
     override fun querySearch(query: String) {
-        super.querySearch(query)
         viewModelScope.launch {
             dataSource.loadPhotos(query)
         }
+    }
+
+    override suspend fun loadMoreCurrentQuery() {
+        dataSource.loadMoreCurrentQuery()
     }
 }

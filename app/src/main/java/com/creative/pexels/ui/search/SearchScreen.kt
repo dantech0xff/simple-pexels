@@ -53,7 +53,7 @@ fun SearchScreen(vm: ILauncherViewModel, appNavHost: NavHostController) {
                     }
                 }
                 AnimatedVisibility(photoList.isNotEmpty(), enter = fadeIn(tween(200, easing = LinearEasing)), exit = fadeOut(tween(200, easing = LinearEasing))) {
-                    PhotoResults(modifier = Modifier.fillMaxSize(), photoList) {
+                    PhotoResults(modifier = Modifier.fillMaxSize(), photoList, vm) {
                         Log.d("SearchScreen", "onClick: $it")
                     }
                 }
