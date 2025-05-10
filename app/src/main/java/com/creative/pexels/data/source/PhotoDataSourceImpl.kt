@@ -38,4 +38,12 @@ class PhotoDataSourceImpl @Inject constructor(
             it.toPhoto()
         }, result.totalResults)
     }
+
+    override suspend fun isPhotoFavorite(photoId: Long): Boolean {
+        return false
+    }
+
+    override suspend fun updatePhotoFavorite(photoId: Long, isFavorite: Boolean) {
+
+    }
 }

@@ -45,7 +45,8 @@ fun PexelsApp(appNavHost: NavHostController = rememberNavController()) {
 
         composable<Photo> { entry ->
             val photo: Photo = entry.toRoute()
-            PhotoScreen(photo, hiltViewModel<PhotoViewModel>(), appNavHost)
+            val photoViewModel = hiltViewModel<PhotoViewModel>().apply { setPhoto(photo) }
+            PhotoScreen(photo, photoViewModel, appNavHost)
         }
     }
 }

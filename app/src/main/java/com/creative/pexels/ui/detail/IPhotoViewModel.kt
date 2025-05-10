@@ -1,6 +1,7 @@
 package com.creative.pexels.ui.detail
 
 import com.creative.pexels.data.model.Photo
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 
@@ -13,6 +14,6 @@ import kotlinx.coroutines.flow.SharedFlow
 interface IPhotoViewModel {
     val messageSharedFlow: SharedFlow<String>
     val isFavorite: Flow<Boolean>
-    fun toggleFavorite(photo: Photo)
-    fun download(photo: Photo)
+    fun toggleFavorite(photo: Photo): Job
+    fun download(photo: Photo): Job
 }

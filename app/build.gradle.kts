@@ -80,6 +80,8 @@ dependencies {
 
     implementation(libs.lottie.compose)
 
+    implementation(libs.androidx.datastore.preferences)
+
     testImplementation(libs.turbine)
 
     testImplementation(libs.mockk)

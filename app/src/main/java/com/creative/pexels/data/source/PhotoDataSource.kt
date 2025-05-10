@@ -10,4 +10,6 @@ import com.creative.pexels.data.model.QueryPageResult
 
 interface PhotoDataSource {
     suspend fun queryPhoto(query: String, pageIndex: Int, pageSize: Int): QueryPageResult
+    suspend fun isPhotoFavorite(photoId: Long): Boolean
+    suspend fun updatePhotoFavorite(photoId: Long, isFavorite: Boolean)
 }
