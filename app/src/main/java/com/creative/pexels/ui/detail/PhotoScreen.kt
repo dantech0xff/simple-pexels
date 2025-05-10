@@ -1,9 +1,8 @@
 package com.creative.pexels.ui.detail
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -14,23 +13,25 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -41,6 +42,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
@@ -49,11 +51,6 @@ import coil3.request.crossfade
 import coil3.request.placeholder
 import com.creative.pexels.R
 import com.creative.pexels.data.model.Photo
-import kotlinx.coroutines.launch
-import kotlin.div
-import kotlin.rem
-import kotlin.times
-import kotlin.unaryMinus
 
 /**
  * Created by dan on 10/5/25
@@ -64,6 +61,13 @@ import kotlin.unaryMinus
 @Composable
 fun PhotoScreen(photo: Photo, vm: IPhotoViewModel, appNavHost: NavHostController) {
     var originalLoaded by remember { mutableStateOf(false) }
+    val isFavorite by vm.isFavorite.collectAsStateWithLifecycle(false)
+    val currentContext = LocalContext.current
+    LaunchedEffect(Unit) {
+        vm.messageSharedFlow.collect {
+            Toast.makeText(currentContext, it, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Box(modifier = Modifier.background(color = Color.Black)) {
         var scale by remember { mutableFloatStateOf(1f) }
@@ -123,7 +127,8 @@ fun PhotoScreen(photo: Photo, vm: IPhotoViewModel, appNavHost: NavHostController
                             offset = Offset.Zero
                         }
                     }
-                }.pointerInput(Unit) {
+                }
+                .pointerInput(Unit) {
                     detectTapGestures(onDoubleTap = {
                         scale = 1F
                         rotation = 0f
@@ -147,26 +152,81 @@ fun PhotoScreen(photo: Photo, vm: IPhotoViewModel, appNavHost: NavHostController
                     .build(),
                 contentScale = ContentScale.FillWidth,
                 contentDescription = "${photo.photographer} - ${photo.id}",
-                modifier = Modifier.fillMaxSize().align(Alignment.Center)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .align(Alignment.Center)
             )
         }
 
-        Column(modifier = Modifier.background(color = Color.Black.copy(alpha = 0.2f)).align(Alignment.TopCenter)) {
+        Column(
+            modifier = Modifier
+                .background(color = Color.Black.copy(alpha = 0.2f))
+                .align(Alignment.TopCenter)
+        ) {
             Box(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Image(
-                    painter = painterResource(R.drawable.close_48px),
-                    modifier = Modifier.size(42.dp).clickable(true) {
-                        appNavHost.popBackStack()
-                    }.align(Alignment.CenterEnd).padding(8.dp),
+                    painter = painterResource(R.drawable.arrow_back_48px),
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clickable(true) {
+                            appNavHost.popBackStack()
+                        }
+                        .padding(8.dp),
+                    contentDescription = null
+                )
+                Text(
+                    "${photo.photographer} - ${photo.id}",
+                    color = Color.White,
+                    modifier = Modifier.padding(8.dp).weight(1.0f)
+                )
+                Image(
+                    painter = painterResource(
+                        if (isFavorite) {
+                            R.drawable.favorite_fill_48px
+                        } else {
+                            R.drawable.favorite_48px
+                        }
+                    ),
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clickable(true) {
+                            vm.toggleFavorite(photo)
+                        }
+                        .padding(8.dp),
                     contentDescription = null
                 )
             }
+        }
+
+        Column(
+            modifier = Modifier.fillMaxWidth().wrapContentHeight()
+                .background(color = Color.Black.copy(alpha = 0.2f))
+                .align(Alignment.BottomCenter)
+        ) {
+            Row {
+                Text(
+                    text = "Resolution: ${photo.width} x ${photo.height}",
+                    color = Color.White,
+                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp).weight(1.0f)
+                )
+                Image(
+                    painter = painterResource(R.drawable.download_48px),
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clickable(true) {
+                            vm.download(photo)
+                        }
+                        .padding(8.dp),
+                    contentDescription = null
+                )
+            }
+            Box(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
         }
     }
 }
