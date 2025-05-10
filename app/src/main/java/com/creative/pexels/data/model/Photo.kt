@@ -1,5 +1,8 @@
 package com.creative.pexels.data.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Photo(
     val id: Long,
     val width: Int = 0,

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.creative.pexels.usecase.QueryPhotosByKeywordUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -23,7 +24,7 @@ class SearchViewModel @Inject constructor(
     private val queryPhotoUseCase: QueryPhotosByKeywordUseCase
 ) : ViewModel(), ISearchViewModel {
 
-    private val mutableMessageSharedFlow: MutableStateFlow<String> = MutableStateFlow("")
+    private val mutableMessageSharedFlow: MutableSharedFlow<String> = MutableSharedFlow()
     override val messageSharedFlow: SharedFlow<String> = mutableMessageSharedFlow.asSharedFlow()
 
     private val mutableTrendingSearch: MutableStateFlow<List<String>> = MutableStateFlow(
@@ -75,5 +76,10 @@ class SearchViewModel @Inject constructor(
 
     override fun setSearchKeyword(keyword: String) {
         mutableSearchKeyword.value = keyword
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+
     }
 }

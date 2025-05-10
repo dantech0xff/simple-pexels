@@ -25,7 +25,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.creative.pexels.ui.NavScreen
 import com.creative.pexels.ui.PhotoResults
 
 /**
@@ -82,10 +81,7 @@ fun SearchScreen(vm: ISearchViewModel, appNavHost: NavHostController) {
                     exit = fadeOut(tween(DefaultAnimationDuration, easing = LinearEasing))
                 ) {
                     PhotoResults(modifier = Modifier.fillMaxSize(), uiState.searchPhotos, vm) {
-                        Log.d("SearchScreen", "onClick: $it")
-                        appNavHost.navigate(
-                            NavScreen.DETAIL.value.replace("{id}", it.id.toString())
-                        )
+                        appNavHost.navigate(it)
                     }
                 }
                 AnimatedVisibility(

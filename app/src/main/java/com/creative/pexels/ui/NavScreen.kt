@@ -9,5 +9,4 @@ package com.creative.pexels.ui
 enum class NavScreen(val value: String) {
     LAUNCHER("launcher"),
     SEARCH("search"),
-    DETAIL("detail/{id}"),
 }

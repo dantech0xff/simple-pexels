@@ -1,6 +1,7 @@
 package com.creative.pexels.ui.detail
 
 import androidx.lifecycle.ViewModel
+import com.creative.pexels.data.model.Photo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -11,5 +12,10 @@ import javax.inject.Inject
  */
 
 @HiltViewModel
-class PhotoViewModel @Inject constructor() : ViewModel(), IPhotoViewModel {
+class PhotoViewModel @Inject constructor(
+
+) : ViewModel(), IPhotoViewModel {
+    override suspend fun findPhotoById(id: Long): Photo? {
+        TODO("Not yet implemented")
+    }
 }
