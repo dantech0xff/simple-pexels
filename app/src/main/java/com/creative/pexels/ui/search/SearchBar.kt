@@ -1,5 +1,6 @@
 package com.creative.pexels.ui.search
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -46,13 +47,15 @@ fun SearchBar(
             textStyle = MaterialTheme.typography.bodyLarge,
             shape = RectangleShape,
             trailingIcon = {
-                Image(
-                    painter = painterResource(R.drawable.close_48px),
-                    contentDescription = "Clear Icon",
-                    modifier = Modifier.clickable {
-                        updateQuery.invoke("")
-                    }.size(24.dp)
-                )
+                AnimatedVisibility(searchQuery.isNotEmpty()) {
+                    Image(
+                        painter = painterResource(R.drawable.close_48px),
+                        contentDescription = "Clear Icon",
+                        modifier = Modifier.clickable {
+                            updateQuery.invoke("")
+                        }.size(24.dp)
+                    )
+                }
             },
             colors = TextFieldDefaults.colors().copy(
                 focusedIndicatorColor = Color.Transparent,

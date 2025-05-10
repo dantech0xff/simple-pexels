@@ -59,7 +59,7 @@ class QueryPhotosByKeywordUseCase @Inject constructor(
         mutex.withLock {
             currentQuery = query
             if (totalPhotoCount <= mutablePhotoFlow.value.size) {
-                return@withLock Result.success(0)
+                return@withLock Result.failure(IllegalStateException("No more photos to load"))
             }
             runCatching {
                 isLoading = true
@@ -71,8 +71,14 @@ class QueryPhotosByKeywordUseCase @Inject constructor(
                 isLoading = false
                 Result.success(it.photos.size)
             }, {
+                if (mutablePhotoFlow.value.isEmpty()) {
+                    mutableEmptyStateFlow.value = EmptyPlaceHolderUiState(
+                        text = "Something went wrong while we trying to get the photos. Please try it again : )",
+                        lottieResId = com.creative.pexels.R.raw.empty_lottie
+                    )
+                }
                 isLoading = false
-                Result.failure(it)
+                Result.failure(Exception("Something went wrong while we trying to fetch photos.", it))
             })
         }
     }

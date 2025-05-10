@@ -1,6 +1,7 @@
 package com.creative.pexels.ui.search
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -16,9 +17,11 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -35,10 +38,16 @@ internal const val DefaultAnimationDuration = 300
 
 @Composable
 fun SearchScreen(vm: ISearchViewModel, appNavHost: NavHostController) {
+    val currentContext = LocalContext.current
+    LaunchedEffect(Unit) {
+        vm.messageSharedFlow.collect {
+            Toast.makeText(currentContext, it, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     Scaffold { paddingValues ->
         AnimatedVisibility(true, modifier = Modifier.padding(paddingValues)) {
             val uiState by vm.uiState.collectAsStateWithLifecycle(SearchScreenUiState.empty())
-
             Column(modifier = Modifier.fillMaxSize()) {
                 SearchBar(
                     modifier = Modifier.fillMaxWidth(),

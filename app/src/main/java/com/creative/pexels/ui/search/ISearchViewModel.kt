@@ -4,6 +4,7 @@ import com.creative.pexels.R
 import com.creative.pexels.data.model.Photo
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
 
 /**
  * Created by dan on 10/5/25
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
  */
 
 interface ISearchViewModel {
+    val messageSharedFlow: SharedFlow<String>
     val uiState: Flow<SearchScreenUiState>
     fun querySearch(query: String): Job
     suspend fun loadMoreCurrentQuery(): Job
