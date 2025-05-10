@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.creative.pexels.ui.launcher.ILauncherViewModel
+import com.creative.pexels.ui.search.SearchScreen
 
 /**
  * Created by dan on 10/5/25
@@ -21,10 +22,23 @@ fun PexelsApp(vm: ILauncherViewModel, appNavHost: NavHostController = rememberNa
     NavHost(
         navController = appNavHost,
         modifier = Modifier.fillMaxSize(),
-        startDestination = "launcher"
+        startDestination = NavScreen.SEARCH.value
     ) {
-        composable(route = "launcher") {
-            Text("This is the launcher screen!!!!")
+        composable(route = NavScreen.LAUNCHER.value) {
+            Text(
+                text = "Search",
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+        composable(route = NavScreen.SEARCH.value) {
+            SearchScreen(vm, appNavHost)
+        }
+        composable(route = NavScreen.DETAIL.value) { entry ->
+            val id = runCatching { entry.arguments?.getString("id")?.toInt() }.getOrDefault(-1)
+            Text(
+                text = "Detail $id",
+                modifier = Modifier.fillMaxSize()
+            )
         }
     }
 }
