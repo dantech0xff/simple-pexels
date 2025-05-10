@@ -39,7 +39,6 @@ import coil3.request.crossfade
 import coil3.request.placeholder
 import com.creative.pexels.R
 import com.creative.pexels.data.model.Photo
-import com.creative.pexels.ui.launcher.ILauncherViewModel
 
 /**
  * Created by dan on 10/5/25
@@ -48,13 +47,13 @@ import com.creative.pexels.ui.launcher.ILauncherViewModel
  */
  
 @Composable
-fun PhotoScreen(id: Long, vm: ILauncherViewModel, appNavHost: NavHostController) {
+fun PhotoScreen(id: Long, vm: IPhotoViewModel, appNavHost: NavHostController) {
     var photo: Photo? by remember { mutableStateOf(null) }
     var originalLoaded by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        vm.searchPhotos.collect {
-            photo = it.find { it.id == id }
-        }
+//        vm.searchPhotos.collect {
+//            photo = it.find { it.id == id }
+//        }
     }
 
     Box(modifier = Modifier.background(color = Color.Black)) {

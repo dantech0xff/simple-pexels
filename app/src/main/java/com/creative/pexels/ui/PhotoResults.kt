@@ -22,12 +22,12 @@ import coil3.request.crossfade
 import coil3.request.placeholder
 import com.creative.pexels.R
 import com.creative.pexels.data.model.Photo
-import com.creative.pexels.ui.launcher.ILauncherViewModel
+import com.creative.pexels.ui.search.ISearchViewModel
 
 private const val LOAD_MORE_OFFSET = 5
 
 @Composable
-fun PhotoResults(modifier: Modifier, photoList: List<Photo>, vm: ILauncherViewModel, onSelect: (Photo) -> Unit) {
+fun PhotoResults(modifier: Modifier, photoList: List<Photo>, vm: ISearchViewModel, onSelect: (Photo) -> Unit) {
     val lazyGridState = rememberLazyGridState()
     LaunchedEffect(Unit) {
         snapshotFlow { lazyGridState.layoutInfo.visibleItemsInfo }.collect {

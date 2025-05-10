@@ -14,6 +14,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.creative.pexels.ui.PexelsApp
 import com.creative.pexels.ui.theme.SimplePexelsTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -21,14 +22,12 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class LauncherActivity : ComponentActivity() {
 
-    private val viewModel: LauncherViewModel by viewModels()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             SimplePexelsTheme {
-                PexelsApp(viewModel)
+                PexelsApp()
             }
         }
     }

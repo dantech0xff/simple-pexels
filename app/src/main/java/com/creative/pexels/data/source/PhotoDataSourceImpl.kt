@@ -5,6 +5,7 @@ import com.creative.pexels.data.adapter.toPhoto
 import com.creative.pexels.data.model.Photo
 import com.creative.pexels.dispatchers.AppDispatchers
 import com.creative.pexels.network.PexelsApiService
+import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

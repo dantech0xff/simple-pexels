@@ -22,7 +22,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.creative.pexels.ui.NavScreen
 import com.creative.pexels.ui.PhotoResults
-import com.creative.pexels.ui.launcher.ILauncherViewModel
 
 /**
  * Created by dan on 10/5/25
@@ -31,7 +30,7 @@ import com.creative.pexels.ui.launcher.ILauncherViewModel
  */
  
 @Composable
-fun SearchScreen(vm: ILauncherViewModel, appNavHost: NavHostController) {
+fun SearchScreen(vm: ISearchViewModel, appNavHost: NavHostController) {
     Scaffold { paddingValues ->
         AnimatedVisibility(true, modifier = Modifier.padding(paddingValues)) {
             var mutableSearchQueryState by remember { mutableStateOf("") }

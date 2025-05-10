@@ -1,4 +1,4 @@
-package com.creative.pexels.ui.launcher
+package com.creative.pexels.ui.detail
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,6 +11,5 @@ import javax.inject.Inject
  */
 
 @HiltViewModel
-class LauncherViewModel @Inject constructor() : ViewModel(), ILauncherViewModel {
-
+class PhotoViewModel @Inject constructor() : ViewModel(), IPhotoViewModel {
 }
