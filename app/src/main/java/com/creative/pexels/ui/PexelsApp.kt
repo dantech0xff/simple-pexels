@@ -8,6 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.creative.pexels.ui.detail.PhotoScreen
 import com.creative.pexels.ui.launcher.ILauncherViewModel
 import com.creative.pexels.ui.search.SearchScreen
 
@@ -34,11 +35,8 @@ fun PexelsApp(vm: ILauncherViewModel, appNavHost: NavHostController = rememberNa
             SearchScreen(vm, appNavHost)
         }
         composable(route = NavScreen.DETAIL.value) { entry ->
-            val id = runCatching { entry.arguments?.getString("id")?.toInt() }.getOrDefault(-1)
-            Text(
-                text = "Detail $id",
-                modifier = Modifier.fillMaxSize()
-            )
+            val id = runCatching { entry.arguments?.getString("id")?.toLong() }.getOrDefault(-1L) ?: -1L
+            PhotoScreen(id, vm, appNavHost)
         }
     }
 }

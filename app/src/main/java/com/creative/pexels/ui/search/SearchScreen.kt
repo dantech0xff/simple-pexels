@@ -20,9 +20,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.creative.pexels.ui.NavScreen
 import com.creative.pexels.ui.PhotoResults
 import com.creative.pexels.ui.launcher.ILauncherViewModel
-import java.security.SecureRandom
 
 /**
  * Created by dan on 10/5/25
@@ -55,6 +55,9 @@ fun SearchScreen(vm: ILauncherViewModel, appNavHost: NavHostController) {
                 AnimatedVisibility(photoList.isNotEmpty(), enter = fadeIn(tween(200, easing = LinearEasing)), exit = fadeOut(tween(200, easing = LinearEasing))) {
                     PhotoResults(modifier = Modifier.fillMaxSize(), photoList, vm) {
                         Log.d("SearchScreen", "onClick: $it")
+                        appNavHost.navigate(
+                            NavScreen.DETAIL.value.replace("{id}", it.id.toString())
+                        )
                     }
                 }
             }
