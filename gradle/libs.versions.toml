@@ -13,11 +13,13 @@ composeBom = "2025.05.00"
 loggingInterceptor = "4.12.0"
 mockk = "1.13.11"
 moshiKotlin = "1.15.1"
+navigationCompose = "2.9.0"
 okhttp = "4.12.0"
 retrofit = "2.11.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroid" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

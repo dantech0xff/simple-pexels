@@ -2,6 +2,7 @@ package com.creative.pexels.dispatchers
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
@@ -11,7 +12,7 @@ import javax.inject.Singleton
  */
 
 @Singleton
-class AppDispatchersImpl : AppDispatchers {
+class AppDispatchersImpl @Inject constructor() : AppDispatchers {
     override val io: CoroutineDispatcher
         get() = Dispatchers.IO
 
