@@ -143,11 +143,11 @@ class PhotoDataSourceImplTest {
         assertTrue(photos.isEmpty())
     }
 
-    private fun createMockPexelsPhotos(count: Int, startId: Int = 1): List<PexelsPhoto> {
+    private fun createMockPexelsPhotos(count: Int, startId: Long = 1): List<PexelsPhoto> {
         return List(count) { index ->
             val id = startId + index
             PexelsPhoto(
-                id = id,
+                id = id.toLong(),
                 width = 1000,
                 height = 750,
                 url = "https://www.pexels.com/photo/$id",
@@ -310,5 +310,75 @@ class PhotoDataSourceImplTest {
 
         // Verify API was called again with page 1
         coVerify(exactly = 2) { mockApiService.searchPhotos(query, 1, 20) }
+    }
+
+    @Test
+    fun `loadMoreCurrentQuery should load more photos for current query`() = runTest {
+        // Arrange - First set up a query with photos
+        val query = "nature"
+        val mockPhotos1 = createMockPexelsPhotos(3, startId = 1)
+        val photosResponse1 = PexelsPhotosResponse(
+            page = 1,
+            perPage = 20,
+            photos = mockPhotos1,
+            totalResults = 100,
+            nextPage = "next-page-url"
+        )
+
+        coEvery { mockApiService.searchPhotos(query, 1, 20) } returns photosResponse1
+
+        // First load to set the current query
+        val initialResult = photoDataSource.loadPhotos(query)
+        assertTrue(initialResult.isSuccess)
+        assertEquals(3, initialResult.getOrNull())
+
+        // Arrange for the load more call
+        val mockPhotos2 = createMockPexelsPhotos(2, startId = 4)
+        val photosResponse2 = PexelsPhotosResponse(
+            page = 2,
+            perPage = 20,
+            photos = mockPhotos2,
+            totalResults = 100,
+            nextPage = "next-page-url"
+        )
+
+        coEvery { mockApiService.searchPhotos(query, 2, 20) } returns photosResponse2
+
+        // Act - Call loadMoreCurrentQuery
+        val result = photoDataSource.loadMoreCurrentQuery()
+
+        // Assert
+        assertTrue(result.isSuccess)
+        assertEquals(2, result.getOrNull())
+
+        // Verify that the flow now contains all photos from both calls
+        val photos = photoDataSource.photoFlow.first()
+        assertEquals(5, photos.size)
+        assertEquals(
+            mockPhotos1.map { it.toPhoto() } + mockPhotos2.map { it.toPhoto() },
+            photos
+        )
+
+        // Verify that the API was called with the expected parameters
+        coVerify(exactly = 1) { mockApiService.searchPhotos(query, 1, 20) }
+        coVerify(exactly = 1) { mockApiService.searchPhotos(query, 2, 20) }
+    }
+
+    @Test
+    fun `loadMoreCurrentQuery should return failure when no query is set`() = runTest {
+        // Act - Call loadMoreCurrentQuery without setting a query first
+        val result = photoDataSource.loadMoreCurrentQuery()
+
+        // Assert
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is IllegalStateException)
+        assertEquals("Current query is empty", result.exceptionOrNull()?.message)
+
+        // Verify that no API call was made
+        coVerify(exactly = 0) { mockApiService.searchPhotos(any(), any(), any()) }
+
+        // Verify that the flow remains empty
+        val photos = photoDataSource.photoFlow.first()
+        assertTrue(photos.isEmpty())
     }
 }

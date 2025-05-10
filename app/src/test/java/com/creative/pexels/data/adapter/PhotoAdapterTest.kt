@@ -45,6 +45,6 @@ class PhotoAdapterTest {
         assertEquals("John Doe", photo.photographer)
         assertEquals("https://www.pexels.com/photographer/john-doe", photo.photographerUrl)
         assertEquals("https://images.pexels.com/photos/123/original.jpg", photo.original)
-        assertEquals("https://images.pexels.com/photos/123/small.jpg", photo.thumb)
+        assertEquals("https://images.pexels.com/photos/123/medium.jpg", photo.thumb)
     }
 }
