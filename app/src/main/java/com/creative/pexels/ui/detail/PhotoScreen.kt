@@ -1,5 +1,10 @@
 package com.creative.pexels.ui.detail
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -45,6 +50,7 @@ import com.creative.pexels.ui.launcher.ILauncherViewModel
 @Composable
 fun PhotoScreen(id: Long, vm: ILauncherViewModel, appNavHost: NavHostController) {
     var photo: Photo? by remember { mutableStateOf(null) }
+    var originalLoaded by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         vm.searchPhotos.collect {
             photo = it.find { it.id == id }
@@ -64,7 +70,7 @@ fun PhotoScreen(id: Long, vm: ILauncherViewModel, appNavHost: NavHostController)
                     painter = painterResource(R.drawable.close_48px),
                     modifier = Modifier.size(42.dp).clickable(true) {
                         appNavHost.popBackStack()
-                    }.align(Alignment.CenterEnd),
+                    }.align(Alignment.CenterEnd).padding(8.dp),
                     contentDescription = null
                 )
             }
@@ -73,16 +79,34 @@ fun PhotoScreen(id: Long, vm: ILauncherViewModel, appNavHost: NavHostController)
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(it.original)
-                    .placeholder(R.drawable.ic_launcher_foreground)
-                    .crossfade(true)
                     .memoryCachePolicy(CachePolicy.ENABLED)
                     .networkCachePolicy(CachePolicy.ENABLED)
                     .diskCachePolicy(CachePolicy.ENABLED)
+                    .listener(onSuccess = { _, _ ->
+                        originalLoaded = true
+                    })
                     .build(),
                 contentScale = ContentScale.FillWidth,
                 contentDescription = "${it.photographer} - ${it.id}",
                 modifier = Modifier.fillMaxSize().align(Alignment.Center)
             )
+            AnimatedVisibility(originalLoaded == false, enter = fadeIn(
+                tween(10, easing = LinearEasing)
+            ), exit = fadeOut(tween(100, easing = LinearEasing))) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(it.thumb)
+                        .placeholder(R.drawable.ic_launcher_foreground)
+                        .crossfade(true)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .networkCachePolicy(CachePolicy.ENABLED)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .build(),
+                    contentScale = ContentScale.FillWidth,
+                    contentDescription = "${it.photographer} - ${it.id}",
+                    modifier = Modifier.fillMaxSize().align(Alignment.Center)
+                )
+            }
         }
     }
 }
