@@ -17,6 +17,6 @@ fun PexelsPhoto.toPhoto(): Photo {
         width = width,
         height = height,
         original = src.original,
-        thumb = src.small
+        thumb = src.medium
     )
 }

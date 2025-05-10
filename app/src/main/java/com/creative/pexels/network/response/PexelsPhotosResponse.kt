@@ -14,13 +14,13 @@ data class PexelsPhotosResponse(
 
 @JsonClass(generateAdapter = true)
 data class PexelsPhoto(
-    @Json(name = "id") val id: Int,
+    @Json(name = "id") val id: Long,
     @Json(name = "width") val width: Int,
     @Json(name = "height") val height: Int,
     @Json(name = "url") val url: String,
     @Json(name = "photographer") val photographer: String,
     @Json(name = "photographer_url") val photographerUrl: String,
-    @Json(name = "photographer_id") val photographerId: Int,
+    @Json(name = "photographer_id") val photographerId: Long,
     @Json(name = "avg_color") val avgColor: String,
     @Json(name = "src") val src: PhotoSrc
 )

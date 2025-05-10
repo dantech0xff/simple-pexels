@@ -1,7 +1,7 @@
 package com.creative.pexels.data.model
 
 data class Photo(
-    val id: Int,
+    val id: Long,
     val width: Int = 0,
     val height: Int = 0,
     val photographer: String = "",

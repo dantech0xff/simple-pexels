@@ -73,6 +73,10 @@ dependencies {
     implementation(libs.okhttp3.logging.interceptor)
     implementation(libs.moshi.kotlin)
 
+    // Coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+
     testImplementation(libs.mockk)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

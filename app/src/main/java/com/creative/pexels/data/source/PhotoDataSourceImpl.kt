@@ -35,7 +35,7 @@ class PhotoDataSourceImpl @Inject constructor(
     private val appDispatchers: AppDispatchers
 ) : PhotoDataSource {
     companion object {
-        private const val DEFAULT_PAGE_SIZE: Int = 20
+        private const val DEFAULT_PAGE_SIZE: Int = 50
     }
 
     private var currentPage: Int = 1
