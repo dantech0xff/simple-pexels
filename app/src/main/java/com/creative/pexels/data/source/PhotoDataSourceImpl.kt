@@ -3,6 +3,7 @@ package com.creative.pexels.data.source
 import android.util.Log
 import com.creative.pexels.data.adapter.toPhoto
 import com.creative.pexels.data.model.Photo
+import com.creative.pexels.data.model.QueryPageResult
 import com.creative.pexels.dispatchers.AppDispatchers
 import com.creative.pexels.network.PexelsApiService
 import dagger.hilt.android.scopes.ViewModelScoped
@@ -13,6 +14,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Created by dan on 10/5/25
@@ -31,70 +33,20 @@ import javax.inject.Inject
  * @param appDispatchers The app dispatchers for coroutines.
  */
 
+@Singleton
 class PhotoDataSourceImpl @Inject constructor(
     private val pexelsApiService: PexelsApiService,
     private val appDispatchers: AppDispatchers
 ) : PhotoDataSource {
 
     init {
-        Log.d("PhotoDataSourceImpl", "PhotoDataSourceImpl initialized")
-    }
-    companion object {
-        private const val DEFAULT_PAGE_SIZE: Int = 20
+        Log.d("PhotoDataSourceImpl", "init $this")
     }
 
-    private var currentPage: Int = 1
-    private var totalPhotoCount: Int = Int.MAX_VALUE
-    private var currentQuery: String = ""
-        set(value) {
-            if (field != value) {
-                field = value
-                currentPage = 1
-                totalPhotoCount = Int.MAX_VALUE
-                mutablePhotoFlow.value = emptyList()
-            }
-        }
-    private val mutex: Mutex = Mutex()
-    private val mutablePhotoFlow: MutableStateFlow<List<Photo>> = MutableStateFlow(emptyList())
-    override val photoFlow: Flow<List<Photo>>
-        get() = mutablePhotoFlow.asStateFlow()
-
-    override suspend fun loadPhotos(query: String) = withContext(appDispatchers.io) {
-        mutex.withLock {
-            currentQuery = query
-            if (totalPhotoCount <= mutablePhotoFlow.value.size) {
-                return@withLock Result.success(0)
-            }
-            runCatching {
-                pexelsApiService.searchPhotos(currentQuery, currentPage, perPage = DEFAULT_PAGE_SIZE).apply {
-                    totalPhotoCount = totalResults
-                }.photos.map {
-                    it.toPhoto()
-                }
-            }.fold({
-                currentPage += 1
-                mutablePhotoFlow.value += it
-                Result.success(it.size)
-            }, {
-                Result.failure(it)
-            })
-        }
-    }
-
-    override suspend fun loadMoreCurrentQuery(): Result<Int> = withContext(appDispatchers.io) {
-        if (currentQuery.isEmpty()) {
-            Result.failure(IllegalStateException("Current query is empty"))
-        } else {
-            loadPhotos(currentQuery)
-        }
-    }
-
-    override suspend fun clearPhotos() = withContext(appDispatchers.io) {
-        mutex.withLock {
-            currentQuery = ""
-            currentPage = 1
-            totalPhotoCount = Int.MAX_VALUE
-            mutablePhotoFlow.value = emptyList()
-        }
+    override suspend fun queryPhoto(query: String, pageIndex: Int, pageSize: Int) = withContext(appDispatchers.io) {
+        val result = pexelsApiService.searchPhotos(query, pageIndex, perPage = pageSize)
+        QueryPageResult(result.photos.map {
+            it.toPhoto()
+        }, result.totalResults)
     }
 }

@@ -1,10 +1,10 @@
 package com.creative.pexels.ui.search
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.creative.pexels.data.model.Photo
-import com.creative.pexels.data.source.PhotoDataSource
-import com.creative.pexels.ui.launcher.ILauncherViewModel
+import com.creative.pexels.usecase.QueryPhotosByKeywordUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,22 +19,24 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val dataSource: PhotoDataSource
+    private val queryPhotoUseCase: QueryPhotosByKeywordUseCase
 ) : ViewModel(), ISearchViewModel {
+
+    init {
+        Log.d("SearchViewModel", "init $this $queryPhotoUseCase")
+    }
 
     private val mutableTrendingSearch: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
     override val searchPhotos: Flow<List<Photo>>
-        get() = dataSource.photoFlow
+        get() = queryPhotoUseCase.photoFlow
     override val trendSearch: Flow<List<String>>
         get() = mutableTrendingSearch
 
-    override fun querySearch(query: String) {
-        viewModelScope.launch {
-            dataSource.loadPhotos(query)
-        }
+    override fun querySearch(query: String) = viewModelScope.launch {
+        queryPhotoUseCase.loadPhotos(query)
     }
 
-    override suspend fun loadMoreCurrentQuery() {
-        dataSource.loadMoreCurrentQuery()
+    override suspend fun loadMoreCurrentQuery() = viewModelScope.launch {
+        queryPhotoUseCase.loadMoreCurrentQuery()
     }
 }

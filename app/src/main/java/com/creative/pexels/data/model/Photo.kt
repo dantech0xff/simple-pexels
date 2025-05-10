@@ -9,3 +9,8 @@ data class Photo(
     val original: String = "",
     val thumb: String = ""
 )
+
+data class QueryPageResult(
+    val photos: List<Photo>,
+    val totalResults: Int = 0,
+)

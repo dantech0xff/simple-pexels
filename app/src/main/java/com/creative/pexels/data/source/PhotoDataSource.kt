@@ -1,7 +1,7 @@
 package com.creative.pexels.data.source
 
 import com.creative.pexels.data.model.Photo
-import kotlinx.coroutines.flow.Flow
+import com.creative.pexels.data.model.QueryPageResult
 
 /**
  * Created by dan on 10/5/25
@@ -10,14 +10,5 @@ import kotlinx.coroutines.flow.Flow
  */
 
 interface PhotoDataSource {
-
-    val photoFlow: Flow<List<Photo>>
-
-    suspend fun loadPhotos(
-        query: String
-    ): Result<Int>
-
-    suspend fun loadMoreCurrentQuery(): Result<Int>
-
-    suspend fun clearPhotos()
+    suspend fun queryPhoto(query: String, pageIndex: Int, pageSize: Int): QueryPageResult
 }

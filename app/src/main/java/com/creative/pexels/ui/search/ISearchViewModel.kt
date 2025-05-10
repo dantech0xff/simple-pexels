@@ -1,6 +1,7 @@
 package com.creative.pexels.ui.search
 
 import com.creative.pexels.data.model.Photo
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -12,6 +13,6 @@ import kotlinx.coroutines.flow.Flow
 interface ISearchViewModel {
     val searchPhotos: Flow<List<Photo>>
     val trendSearch: Flow<List<String>>
-    fun querySearch(query: String) = Unit
-    suspend fun loadMoreCurrentQuery() = Unit
+    fun querySearch(query: String): Job
+    suspend fun loadMoreCurrentQuery(): Job
 }

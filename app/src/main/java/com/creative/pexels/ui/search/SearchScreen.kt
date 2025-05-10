@@ -63,4 +63,3 @@ fun SearchScreen(vm: ISearchViewModel, appNavHost: NavHostController) {
         }
     }
 }
-
