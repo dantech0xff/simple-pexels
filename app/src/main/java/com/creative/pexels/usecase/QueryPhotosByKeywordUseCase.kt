@@ -3,6 +3,7 @@ package com.creative.pexels.usecase
 import com.creative.pexels.data.model.Photo
 import com.creative.pexels.data.source.PhotoDataSource
 import com.creative.pexels.dispatchers.AppDispatchers
+import com.creative.pexels.ui.search.EmptyPlaceHolderUiState
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,37 +28,50 @@ class QueryPhotosByKeywordUseCase @Inject constructor(
         private const val DEFAULT_PAGE_SIZE: Int = 20
     }
 
+    private var isLoading: Boolean = false
     private var currentPage: Int = 1
     private var totalPhotoCount: Int = Int.MAX_VALUE
     private var currentQuery: String = ""
         set(value) {
             if (field != value) {
                 field = value
-                currentPage = 1
-                totalPhotoCount = Int.MAX_VALUE
-                mutablePhotoFlow.value = emptyList()
+                internalResetState()
             }
         }
     private val mutex: Mutex = Mutex()
     private val mutablePhotoFlow: MutableStateFlow<List<Photo>> = MutableStateFlow(emptyList())
+    private val mutableEmptyStateFlow: MutableStateFlow<EmptyPlaceHolderUiState> = MutableStateFlow(
+        EmptyPlaceHolderUiState(
+            text = "Try to search something. The results will be very appealing!",
+            lottieResId = com.creative.pexels.R.raw.empty_lottie
+        )
+    )
 
     val photoFlow: Flow<List<Photo>>
         get() = mutablePhotoFlow.asStateFlow()
+    val emptyStateFlow: Flow<EmptyPlaceHolderUiState>
+        get() = mutableEmptyStateFlow.asStateFlow()
 
-    suspend fun loadPhotos(query: String) = withContext(appDispatchers.io) {
+    suspend fun loadPhotos(query: String): Result<Int> = withContext(appDispatchers.io) {
+        if (isLoading) {
+            return@withContext Result.success(0)
+        }
         mutex.withLock {
             currentQuery = query
             if (totalPhotoCount <= mutablePhotoFlow.value.size) {
                 return@withLock Result.success(0)
             }
             runCatching {
+                isLoading = true
                 photoDataSource.queryPhoto(currentQuery, currentPage, DEFAULT_PAGE_SIZE)
             }.fold({
                 currentPage += 1
                 totalPhotoCount = it.totalResults
                 mutablePhotoFlow.value += it.photos
+                isLoading = false
                 Result.success(it.photos.size)
             }, {
+                isLoading = false
                 Result.failure(it)
             })
         }
@@ -65,6 +79,7 @@ class QueryPhotosByKeywordUseCase @Inject constructor(
 
     suspend fun loadMoreCurrentQuery(): Result<Int> = withContext(appDispatchers.io) {
         if (currentQuery.isEmpty()) {
+            internalResetState()
             Result.failure(IllegalStateException("Current query is empty"))
         } else {
             loadPhotos(currentQuery)
@@ -78,5 +93,15 @@ class QueryPhotosByKeywordUseCase @Inject constructor(
             totalPhotoCount = Int.MAX_VALUE
             mutablePhotoFlow.value = emptyList()
         }
+    }
+
+    private fun internalResetState() {
+        currentPage = 1
+        totalPhotoCount = Int.MAX_VALUE
+        mutablePhotoFlow.value = emptyList()
+        mutableEmptyStateFlow.value = EmptyPlaceHolderUiState(
+            text = "Loading your new keyword. The results will be very appealing!",
+            lottieResId = com.creative.pexels.R.raw.empty_lottie
+        )
     }
 }
