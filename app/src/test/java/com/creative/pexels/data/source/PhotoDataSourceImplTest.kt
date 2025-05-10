@@ -7,19 +7,18 @@ import com.creative.pexels.network.response.PexelsPhoto
 import com.creative.pexels.network.response.PexelsPhotosResponse
 import com.creative.pexels.network.response.PhotoSrc
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.unmockkAll
+import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertTrue
+import junit.framework.TestCase.fail
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.io.IOException
@@ -50,100 +49,74 @@ class PhotoDataSourceImplTest {
     }
 
     @Test
-    fun `loadPhotos should return success result when API call succeeds`() = runTest {
+    fun `queryPhoto should return photo list and total results when API call succeeds`() = runTest {
         // Arrange
         val query = "nature"
+        val pageIndex = 1
+        val pageSize = 20
         val mockPhotos = createMockPexelsPhotos(3)
         val photosResponse = PexelsPhotosResponse(
-            page = 1,
-            perPage = 20,
+            page = pageIndex,
+            perPage = pageSize,
             photos = mockPhotos,
             totalResults = 100,
-            nextPage = "next-page-url",
+            nextPage = "next-page-url"
         )
 
-        coEvery { mockApiService.searchPhotos(query, 1, 20) } returns photosResponse
+        coEvery { mockApiService.searchPhotos(query, pageIndex, pageSize) } returns photosResponse
 
         // Act
-        val result = photoDataSource.loadPhotos(query)
+        val result = photoDataSource.queryPhoto(query, pageIndex, pageSize)
 
         // Assert
-        assertTrue(result.isSuccess)
-        assertEquals(3, result.getOrNull())
-
-        // Check flow contains expected photos
-        val photos = photoDataSource.photoFlow.first()
-        assertEquals(3, photos.size)
-        assertEquals(mockPhotos.map { it.toPhoto() }, photos)
+        assertEquals(mockPhotos.map { it.toPhoto() }, result.photos)
+        assertEquals(100, result.totalResults)
     }
 
     @Test
-    fun `loadPhotos should append new photos to existing ones`() = runTest {
-        // Arrange - First call
-        val query = "nature"
-        val mockPhotos1 = createMockPexelsPhotos(3, startId = 1)
-        val photosResponse1 = PexelsPhotosResponse(
-            page = 1,
-            perPage = 20,
-            photos = mockPhotos1,
-            totalResults = 100,
-            nextPage = "next-page-url",
+    fun `queryPhoto should handle empty result correctly`() = runTest {
+        // Arrange
+        val query = "xyznonexistentquery"
+        val pageIndex = 1
+        val pageSize = 20
+        val photosResponse = PexelsPhotosResponse(
+            page = pageIndex,
+            perPage = pageSize,
+            photos = emptyList(),
+            totalResults = 0,
+            nextPage = null
         )
 
-        coEvery { mockApiService.searchPhotos(query, 1, 20) } returns photosResponse1
+        coEvery { mockApiService.searchPhotos(query, pageIndex, pageSize) } returns photosResponse
 
-        // First load
-        photoDataSource.loadPhotos(query)
-
-        // Arrange - Second call
-        val mockPhotos2 = createMockPexelsPhotos(2, startId = 4)
-        val photosResponse2 = PexelsPhotosResponse(
-            page = 2,
-            perPage = 20,
-            photos = mockPhotos2,
-            totalResults = 100,
-            nextPage = "next-page-url",
-        )
-
-        coEvery { mockApiService.searchPhotos(query, 2, 20) } returns photosResponse2
-
-        // Act - Second load
-        val result = photoDataSource.loadPhotos(query)
+        // Act
+        val result = photoDataSource.queryPhoto(query, pageIndex, pageSize)
 
         // Assert
-        assertTrue(result.isSuccess)
-        assertEquals(2, result.getOrNull())
-
-        // Check flow contains all photos (first load + second load)
-        val photos = photoDataSource.photoFlow.first()
-        assertEquals(5, photos.size)
-        assertEquals(
-            mockPhotos1.map { it.toPhoto() } + mockPhotos2.map { it.toPhoto() },
-            photos
-        )
+        assertTrue(result.photos.isEmpty())
+        assertEquals(0, result.totalResults)
     }
 
     @Test
-    fun `loadPhotos should return failure result when API call fails`() = runTest {
+    fun `queryPhoto should propagate exceptions from API`() = runTest {
         // Arrange
         val query = "nature"
+        val pageIndex = 1
+        val pageSize = 20
         val exception = IOException("Network error")
 
-        coEvery { mockApiService.searchPhotos(query, 1, 20) } throws exception
+        coEvery { mockApiService.searchPhotos(query, pageIndex, pageSize) } throws exception
 
-        // Act
-        val result = photoDataSource.loadPhotos(query)
-
-        // Assert
-        assertTrue(result.isFailure)
-        assertEquals(exception, result.exceptionOrNull())
-
-        // Flow should remain empty
-        val photos = photoDataSource.photoFlow.first()
-        assertTrue(photos.isEmpty())
+        // Act & Assert
+        try {
+            photoDataSource.queryPhoto(query, pageIndex, pageSize)
+        } catch (e: Exception) {
+            assert(e is IOException)
+            assertTrue(e.message == "Network error")
+        }
     }
 
-    private fun createMockPexelsPhotos(count: Int, startId: Long = 1): List<PexelsPhoto> {
+    private fun createMockPexelsPhotos(count: Int, startId: Int = 1): List<PexelsPhoto> {
         return List(count) { index ->
             val id = startId + index
             PexelsPhoto(
@@ -153,7 +126,7 @@ class PhotoDataSourceImplTest {
                 url = "https://www.pexels.com/photo/$id",
                 photographer = "Photographer $id",
                 photographerUrl = "https://www.pexels.com/photographer/$id",
-                photographerId = id * 10,
+                photographerId = id * 10L,
                 avgColor = "#FFFFFF",
                 src = PhotoSrc(
                     original = "https://images.pexels.com/photos/$id/original.jpg",
@@ -166,219 +139,5 @@ class PhotoDataSourceImplTest {
                 )
             )
         }
-    }
-
-    @Test
-    fun `loadPhotos should return success with zero when all photos are loaded`() = runTest {
-        // Arrange
-        val query = "nature"
-        val mockPhotos = createMockPexelsPhotos(3)
-        val photosResponse = PexelsPhotosResponse(
-            page = 1,
-            perPage = 20,
-            photos = mockPhotos,
-            totalResults = 3, // Setting total results to exactly the number of photos we return
-            nextPage = null, // No next page available
-        )
-
-        coEvery { mockApiService.searchPhotos(query, 1, 20) } returns photosResponse
-
-        // First load - should load all available photos
-        val result1 = photoDataSource.loadPhotos(query)
-
-        // Verify first load was successful
-        assertTrue(result1.isSuccess)
-        assertEquals(3, result1.getOrNull())
-
-        // Now try to load more photos
-        // Act
-        val result2 = photoDataSource.loadPhotos(query)
-
-        // Assert
-        assertTrue(result2.isSuccess)
-        assertEquals(0, result2.getOrNull()) // Should return 0 new photos
-
-        // Check flow still contains only the original photos
-        val photos = photoDataSource.photoFlow.first()
-        assertEquals(3, photos.size)
-        assertEquals(mockPhotos.map { it.toPhoto() }, photos)
-
-        // Verify that we didn't make a second API call
-        coVerify(exactly = 0) { mockApiService.searchPhotos(query, 2, 20) }
-    }
-
-    @Test
-    fun `loadPhotos should reset state when query changes`() = runTest {
-        // Arrange - First query
-        val query1 = "nature"
-        val mockPhotos1 = createMockPexelsPhotos(3)
-        val photosResponse1 = PexelsPhotosResponse(
-            page = 1,
-            perPage = 20,
-            photos = mockPhotos1,
-            totalResults = 100,
-            nextPage = "next-page-url"
-        )
-
-        coEvery { mockApiService.searchPhotos(query1, 1, 20) } returns photosResponse1
-
-        // Load photos with first query
-        val result1 = photoDataSource.loadPhotos(query1)
-
-        // Verify first load was successful
-        assertTrue(result1.isSuccess)
-        assertEquals(3, result1.getOrNull())
-
-        // Arrange - Second query (different)
-        val query2 = "city"
-        val mockPhotos2 = createMockPexelsPhotos(2, startId = 100)
-        val photosResponse2 = PexelsPhotosResponse(
-            page = 1, // Should start from page 1 again
-            perPage = 20,
-            photos = mockPhotos2,
-            totalResults = 50,
-            nextPage = "next-page-url"
-        )
-
-        coEvery { mockApiService.searchPhotos(query2, 1, 20) } returns photosResponse2
-
-        // Act - Load photos with second query
-        val result2 = photoDataSource.loadPhotos(query2)
-
-        // Assert
-        assertTrue(result2.isSuccess)
-        assertEquals(2, result2.getOrNull())
-
-        // Check that flow contains ONLY the new photos (old ones were cleared)
-        val photos = photoDataSource.photoFlow.first()
-        assertEquals(2, photos.size)
-        assertEquals(mockPhotos2.map { it.toPhoto() }, photos)
-
-        // Verify that the API was called with page 1 for the new query
-        coVerify(exactly = 1) { mockApiService.searchPhotos(query1, 1, 20) }
-        coVerify(exactly = 1) { mockApiService.searchPhotos(query2, 1, 20) }
-    }
-
-    @Test
-    fun `clearPhotos should reset all state to default values`() = runTest {
-        // Arrange - First load some photos
-        val query = "nature"
-        val mockPhotos = createMockPexelsPhotos(3)
-        val photosResponse = PexelsPhotosResponse(
-            page = 1,
-            perPage = 20,
-            photos = mockPhotos,
-            totalResults = 100,
-            nextPage = "next-page-url"
-        )
-
-        coEvery { mockApiService.searchPhotos(query, 1, 20) } returns photosResponse
-
-        // Load photos
-        val loadResult = photoDataSource.loadPhotos(query)
-        assertTrue(loadResult.isSuccess)
-
-        // Verify photos were loaded
-        val photosBeforeClear = photoDataSource.photoFlow.first()
-        assertEquals(3, photosBeforeClear.size)
-
-        // Act - Clear photos
-        photoDataSource.clearPhotos()
-
-        // Assert
-        // Verify photo list is empty
-        val photosAfterClear = photoDataSource.photoFlow.first()
-        assertTrue(photosAfterClear.isEmpty())
-
-        // Load photos with same query - should start from page 1 again
-        val newPhotosResponse = PexelsPhotosResponse(
-            page = 1,
-            perPage = 20,
-            photos = mockPhotos,
-            totalResults = 100,
-            nextPage = "next-page-url"
-        )
-
-        coEvery { mockApiService.searchPhotos(query, 1, 20) } returns newPhotosResponse
-
-        // Load photos again
-        val reloadResult = photoDataSource.loadPhotos(query)
-
-        // Verify the photos were loaded from page 1
-        assertTrue(reloadResult.isSuccess)
-        assertEquals(3, reloadResult.getOrNull())
-
-        // Verify API was called again with page 1
-        coVerify(exactly = 2) { mockApiService.searchPhotos(query, 1, 20) }
-    }
-
-    @Test
-    fun `loadMoreCurrentQuery should load more photos for current query`() = runTest {
-        // Arrange - First set up a query with photos
-        val query = "nature"
-        val mockPhotos1 = createMockPexelsPhotos(3, startId = 1)
-        val photosResponse1 = PexelsPhotosResponse(
-            page = 1,
-            perPage = 20,
-            photos = mockPhotos1,
-            totalResults = 100,
-            nextPage = "next-page-url"
-        )
-
-        coEvery { mockApiService.searchPhotos(query, 1, 20) } returns photosResponse1
-
-        // First load to set the current query
-        val initialResult = photoDataSource.loadPhotos(query)
-        assertTrue(initialResult.isSuccess)
-        assertEquals(3, initialResult.getOrNull())
-
-        // Arrange for the load more call
-        val mockPhotos2 = createMockPexelsPhotos(2, startId = 4)
-        val photosResponse2 = PexelsPhotosResponse(
-            page = 2,
-            perPage = 20,
-            photos = mockPhotos2,
-            totalResults = 100,
-            nextPage = "next-page-url"
-        )
-
-        coEvery { mockApiService.searchPhotos(query, 2, 20) } returns photosResponse2
-
-        // Act - Call loadMoreCurrentQuery
-        val result = photoDataSource.loadMoreCurrentQuery()
-
-        // Assert
-        assertTrue(result.isSuccess)
-        assertEquals(2, result.getOrNull())
-
-        // Verify that the flow now contains all photos from both calls
-        val photos = photoDataSource.photoFlow.first()
-        assertEquals(5, photos.size)
-        assertEquals(
-            mockPhotos1.map { it.toPhoto() } + mockPhotos2.map { it.toPhoto() },
-            photos
-        )
-
-        // Verify that the API was called with the expected parameters
-        coVerify(exactly = 1) { mockApiService.searchPhotos(query, 1, 20) }
-        coVerify(exactly = 1) { mockApiService.searchPhotos(query, 2, 20) }
-    }
-
-    @Test
-    fun `loadMoreCurrentQuery should return failure when no query is set`() = runTest {
-        // Act - Call loadMoreCurrentQuery without setting a query first
-        val result = photoDataSource.loadMoreCurrentQuery()
-
-        // Assert
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is IllegalStateException)
-        assertEquals("Current query is empty", result.exceptionOrNull()?.message)
-
-        // Verify that no API call was made
-        coVerify(exactly = 0) { mockApiService.searchPhotos(any(), any(), any()) }
-
-        // Verify that the flow remains empty
-        val photos = photoDataSource.photoFlow.first()
-        assertTrue(photos.isEmpty())
     }
 }

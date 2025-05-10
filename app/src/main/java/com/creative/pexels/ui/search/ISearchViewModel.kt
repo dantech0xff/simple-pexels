@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.Flow
 interface ISearchViewModel {
     val searchPhotos: Flow<List<Photo>>
     val trendSearch: Flow<List<String>>
+    val searchKeyword: Flow<String>
     fun querySearch(query: String): Job
     suspend fun loadMoreCurrentQuery(): Job
+    fun setSearchKeyword(keyword: String)
 }

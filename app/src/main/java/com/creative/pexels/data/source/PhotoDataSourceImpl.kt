@@ -2,16 +2,9 @@ package com.creative.pexels.data.source
 
 import android.util.Log
 import com.creative.pexels.data.adapter.toPhoto
-import com.creative.pexels.data.model.Photo
 import com.creative.pexels.data.model.QueryPageResult
 import com.creative.pexels.dispatchers.AppDispatchers
 import com.creative.pexels.network.PexelsApiService
-import dagger.hilt.android.scopes.ViewModelScoped
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -38,10 +31,6 @@ class PhotoDataSourceImpl @Inject constructor(
     private val pexelsApiService: PexelsApiService,
     private val appDispatchers: AppDispatchers
 ) : PhotoDataSource {
-
-    init {
-        Log.d("PhotoDataSourceImpl", "init $this")
-    }
 
     override suspend fun queryPhoto(query: String, pageIndex: Int, pageSize: Int) = withContext(appDispatchers.io) {
         val result = pexelsApiService.searchPhotos(query, pageIndex, perPage = pageSize)

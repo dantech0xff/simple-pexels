@@ -1,6 +1,5 @@
 package com.creative.pexels.data.source
 
-import com.creative.pexels.data.model.Photo
 import com.creative.pexels.data.model.QueryPageResult
 
 /**

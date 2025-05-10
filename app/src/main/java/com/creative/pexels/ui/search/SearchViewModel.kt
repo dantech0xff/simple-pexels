@@ -27,10 +27,14 @@ class SearchViewModel @Inject constructor(
     }
 
     private val mutableTrendingSearch: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
+    private val mutableSearchKeyword: MutableStateFlow<String> = MutableStateFlow("")
+
     override val searchPhotos: Flow<List<Photo>>
         get() = queryPhotoUseCase.photoFlow
     override val trendSearch: Flow<List<String>>
         get() = mutableTrendingSearch
+    override val searchKeyword: Flow<String>
+        get() = mutableSearchKeyword
 
     override fun querySearch(query: String) = viewModelScope.launch {
         queryPhotoUseCase.loadPhotos(query)
@@ -38,5 +42,9 @@ class SearchViewModel @Inject constructor(
 
     override suspend fun loadMoreCurrentQuery() = viewModelScope.launch {
         queryPhotoUseCase.loadMoreCurrentQuery()
+    }
+
+    override fun setSearchKeyword(keyword: String) {
+        mutableSearchKeyword.value = keyword
     }
 }

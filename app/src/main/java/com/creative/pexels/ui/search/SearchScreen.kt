@@ -14,9 +14,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -33,22 +30,22 @@ import com.creative.pexels.ui.PhotoResults
 fun SearchScreen(vm: ISearchViewModel, appNavHost: NavHostController) {
     Scaffold { paddingValues ->
         AnimatedVisibility(true, modifier = Modifier.padding(paddingValues)) {
-            var mutableSearchQueryState by remember { mutableStateOf("") }
             val photoList by vm.searchPhotos.collectAsStateWithLifecycle(emptyList())
             val trendingList by vm.trendSearch.collectAsStateWithLifecycle(emptyList())
+            val queryKeyword by vm.searchKeyword.collectAsStateWithLifecycle("")
             Column(modifier = Modifier.fillMaxSize()) {
                 SearchBar(
                     modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                    mutableSearchQueryState,
+                    queryKeyword,
                     updateQuery = {
-                        mutableSearchQueryState = it
+                        vm.setSearchKeyword(it)
                     }
                 ) { query ->
                     vm.querySearch(query)
                 }
                 AnimatedVisibility(trendingList.isNotEmpty(), enter = fadeIn(tween(200, easing = LinearEasing)), exit = fadeOut(tween(200, easing = LinearEasing))) {
                     SearchTrending(modifier = Modifier.fillMaxWidth().wrapContentHeight(), trending = trendingList) {
-                        mutableSearchQueryState = it
+                        vm.setSearchKeyword(it)
                     }
                 }
                 AnimatedVisibility(photoList.isNotEmpty(), enter = fadeIn(tween(200, easing = LinearEasing)), exit = fadeOut(tween(200, easing = LinearEasing))) {
