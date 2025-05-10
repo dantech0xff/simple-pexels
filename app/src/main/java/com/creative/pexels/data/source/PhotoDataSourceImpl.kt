@@ -1,5 +1,6 @@
 package com.creative.pexels.data.source
 
+import android.util.Log
 import com.creative.pexels.data.adapter.toPhoto
 import com.creative.pexels.data.model.Photo
 import com.creative.pexels.dispatchers.AppDispatchers
@@ -11,7 +12,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Created by dan on 10/5/25
@@ -29,11 +29,15 @@ import javax.inject.Singleton
  * @param pexelsApiService The Pexels API service to use for loading photos.
  * @param appDispatchers The app dispatchers for coroutines.
  */
-@Singleton
+
 class PhotoDataSourceImpl @Inject constructor(
     private val pexelsApiService: PexelsApiService,
     private val appDispatchers: AppDispatchers
 ) : PhotoDataSource {
+
+    init {
+        Log.d("PhotoDataSourceImpl", "PhotoDataSourceImpl initialized")
+    }
     companion object {
         private const val DEFAULT_PAGE_SIZE: Int = 20
     }
