@@ -73,7 +73,10 @@ fun PhotoScreen(photo: Photo, vm: IPhotoViewModel, appNavHost: NavHostController
         var scale by remember { mutableFloatStateOf(1f) }
         var offset by remember { mutableStateOf(Offset.Zero) }
         var rotation by remember { mutableFloatStateOf(0f) }
-
+        val displaySize = LocalContext.current.resources.displayMetrics.run {
+            Offset(widthPixels.toFloat(), heightPixels.toFloat())
+        }
+        val contentScale = if(displaySize.x < displaySize.y) ContentScale.FillWidth else ContentScale.FillHeight
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(photo.original)
@@ -84,7 +87,7 @@ fun PhotoScreen(photo: Photo, vm: IPhotoViewModel, appNavHost: NavHostController
                     originalLoaded = true
                 })
                 .build(),
-            contentScale = ContentScale.FillWidth,
+            contentScale = contentScale,
             contentDescription = "${photo.photographer} - ${photo.id}",
             modifier = Modifier
                 .fillMaxSize()
@@ -150,7 +153,7 @@ fun PhotoScreen(photo: Photo, vm: IPhotoViewModel, appNavHost: NavHostController
                     .networkCachePolicy(CachePolicy.ENABLED)
                     .diskCachePolicy(CachePolicy.ENABLED)
                     .build(),
-                contentScale = ContentScale.FillWidth,
+                contentScale = contentScale,
                 contentDescription = "${photo.photographer} - ${photo.id}",
                 modifier = Modifier
                     .fillMaxSize()

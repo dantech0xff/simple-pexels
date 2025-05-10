@@ -1,6 +1,5 @@
 package com.creative.pexels.data.source
 
-import android.util.Log
 import com.creative.pexels.data.adapter.toPhoto
 import com.creative.pexels.data.model.QueryPageResult
 import com.creative.pexels.dispatchers.AppDispatchers
