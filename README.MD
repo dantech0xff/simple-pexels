@@ -1,4 +1,5 @@
 # Simple-Pexels Photo Search App
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/dantech0xff/simple-pexels)
 
 A simple Android application that allows users to search for and browse images using the Pexels API. This project is developed focusing on modern Android development practices, clean architecture, and a user-friendly interface.
 
